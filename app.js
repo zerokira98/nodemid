@@ -7,6 +7,7 @@ import { getFirestore, getDocs, collection } from "firebase/firestore";
 import midtransClient from "midtrans-client";
 import { authenticateKey } from "./api.js";
 const app = express()
+const PORT = process.env.PORT || 5001
 // Create a new client
 const db = new getFirestore(firebaseApp);
 const midApi = new midtransClient.CoreApi({
@@ -130,4 +131,4 @@ app.get('/firestore', async function (req, res) {
         console.log(error)
     }
 })
-app.listen(3000)
+app.listen(PORT, () => console.log(`Listening on ${PORT}`))
