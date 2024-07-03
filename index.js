@@ -2,18 +2,18 @@
 
 // const express = require('express')
 import express from 'express'
-import { firebaseApp } from './fire.js'
-import { getFirestore, getDocs, collection } from "firebase/firestore";
-import midtransClient from "midtrans-client";
+// import { firebaseApp } from './fire.js'
+// import { getFirestore, getDocs, collection } from "firebase/firestore";
+// import midtransClient from "midtrans-client";
 import { authenticateKey } from "./api.js";
 const app = express()
 const PORT = process.env.PORT || 5001
 // Create a new client
-const db = new getFirestore(firebaseApp);
-const midApi = new midtransClient.CoreApi({
-    serverKey: 'SB-Mid-server-6fstaFj_2WMLl4nz34LJHgWy',
-    clientKey: 'SB-Mid-client-DYN_EMsTJBpM3-GA'
-})
+// const db = new getFirestore(firebaseApp);
+// const midApi = new midtransClient.CoreApi({
+//     serverKey: 'SB-Mid-server-6fstaFj_2WMLl4nz34LJHgWy',
+//     clientKey: 'SB-Mid-client-DYN_EMsTJBpM3-GA'
+// })
 app.use(express.json())
 app.get('/', function (req, res) {
     res.send('Hello World tai')
@@ -100,11 +100,11 @@ app.post('/midtrans_post', function (req, res) {
 })
 app.get('/transactionstatus', authenticateKey, function (req, res) {
     // res.send('telo')
-    midApi.transaction.status('589a49c8-0759-4431-8cd1-b48b7608d81a')
-        .then((response) => {
-            console.log(response);
-            res.send('Hello World')
-        });
+    // midApi.transaction.status('589a49c8-0759-4431-8cd1-b48b7608d81a')
+    //     .then((response) => {
+    //         console.log(response);
+    //         res.send('Hello World')
+    //     });
 
 })
 app.get('/invoice', authenticateKey, function (req, res) {
@@ -116,19 +116,19 @@ app.get('/invoice', authenticateKey, function (req, res) {
     //     });
 
 })
-app.get('/firestore', async function (req, res) {
-    console.log(
-        req.query
-    );
-    res.send('Hello World2 ' + req.query.telo + ' ' + req.query.tahu)
-    try {
-        var querySnapshot = await getDocs(collection(db, "barang"))
-        querySnapshot.forEach((doc) => {
-            console.log(`${doc.id} => ${doc.data().namaBarang}`);
-        });
-    } catch (error) {
+// app.get('/firestore', async function (req, res) {
+//     console.log(
+//         req.query
+//     );
+//     res.send('Hello World2 ' + req.query.telo + ' ' + req.query.tahu)
+//     try {
+//         var querySnapshot = await getDocs(collection(db, "barang"))
+//         querySnapshot.forEach((doc) => {
+//             console.log(`${doc.id} => ${doc.data().namaBarang}`);
+//         });
+//     } catch (error) {
 
-        console.log(error)
-    }
-})
+//         console.log(error)
+//     }
+// })
 app.listen(PORT, () => console.log(`Listening on ${PORT}`))
