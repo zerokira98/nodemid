@@ -3,7 +3,7 @@ const app = express();
 const authenticateKey = require("./api.js");
 
 const port = process.env.PORT || 3001;
-
+app.use(express.json())
 app.get("/", (req, res) => res.type('html').send(html));
 app.get('/download', function (req, res) {
   const file = `frame.png`;
