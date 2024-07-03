@@ -16,7 +16,7 @@ const midApi = new midtransClient.CoreApi({
 })
 app.use(express.json())
 app.get('/', function (req, res) {
-    res.send('Hello World')
+    res.send('Hello World tai')
 })
 app.get('/download', function (req, res) {
     const file = `frame.png`;
