@@ -1,13 +1,26 @@
 const express = require("express");
 const app = express();
 const authenticateKey = require("./api.js");
+const firebaseApp = require("./fire.js");
+const { getFirestore, getDocs, collection, doc, updateDoc, setDoc } = require("firebase/firestore");
+const midtransClient = require("midtrans-client");
+const db = new getFirestore(firebaseApp);
+
+const midApi = new midtransClient.CoreApi({
+  serverKey: 'SB-Mid-server-6fstaFj_2WMLl4nz34LJHgWy',
+  clientKey: 'SB-Mid-client-DYN_EMsTJBpM3-GA'
+})
 
 const port = process.env.PORT || 3001;
 app.use(express.json())
+app.post('/notification', function (req, res) {
+  console.log(req.body);
+  res.status(100).send();
+});
 app.get("/", (req, res) => res.type('html').send(html));
 app.get('/download', function (req, res) {
   const file = `frame.png`;
-  res.download(file); // Set disposition and send it.
+  res.send(file); // Set disposition and send it.
 });
 app.post('/fluttertest', authenticateKey, function (req, res) {
   console.log(req.body);
@@ -43,13 +56,21 @@ app.post('/fluttertest', authenticateKey, function (req, res) {
     "item_details": requestdata.items,
     "acquirer": "gopay"
   };
-  console.log(requestdata);
-  console.log(parameter);
-  // midApi.charge(parameter).then((response) => {
-  //     console.log(response);
-  //     res.send('Hello World')
-  // })
-  res.send({ 'id': 'abcd-efgh', 'qrcode_url': '/download' })
+  // console.log(requestdata);
+  // console.log(parameter);
+  midApi.charge(parameter).then(async (response) => {
+    try {
+      var midtrans_id = response.transaction_id;
+      var qrurl = response.actions[0]['url'];
+      const ref = doc(db, 'strukMasuk', req.body.id);
+      var querySnapshot = await setDoc(ref, { 'midtrans_id': midtrans_id }, { merge: true })
+      res.send({ 'id': midtrans_id, 'qrcode_url': qrurl })
+
+    } catch (error) {
+      res.status(400).send(error)
+      console.log(error)
+    }
+  })
 })
 app.post('/midtrans_post', function (req, res) {
   let items = []
