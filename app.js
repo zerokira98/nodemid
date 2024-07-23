@@ -13,11 +13,13 @@ const midApi = new midtransClient.CoreApi({
 
 const port = process.env.PORT || 3001;
 app.use(express.json())
-app.post('/notification', function (req, res) {
+app.post('/notification', async function (req, res) {
   console.log(req.body);
-  console.log(
-    req.body.transaction_status + order_id
-  );
+  // console.log(
+  //   req.body.transaction_status + order_id
+  // ); 
+  const ref = doc(db, 'strukMasuk', req.body.order_id);
+  var querySnapshot = await setDoc(ref, { 'midstatus': req.body.transaction_status }, { merge: true })
   res.status(200).send();
 });
 app.get("/", (req, res) => res.type('html').send(html));
@@ -66,8 +68,8 @@ app.post('/fluttertest', authenticateKey, function (req, res) {
       var midtrans_id = response.transaction_id;
       var qrurl = response.actions[0]['url'];
       const ref = doc(db, 'strukMasuk', req.body.id);
-      var querySnapshot = await setDoc(ref, { 'midtrans_id': midtrans_id }, { merge: true })
-      res.status(200).header({ 'Content-Type': 'application/json' }).send({ 'id': midtrans_id, 'qrcode_url': qrurl })
+      var querySnapshot = await setDoc(ref, { 'midId': midtrans_id, 'midstatus': response.transaction_status }, { merge: true })
+      res.status(200).header({ 'Content-Type': 'application/json' }).send({ 'midId': midtrans_id, 'qrcode_url': qrurl })
 
     } catch (error) {
       console.log(error)
