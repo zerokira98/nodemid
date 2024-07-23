@@ -15,7 +15,10 @@ const port = process.env.PORT || 3001;
 app.use(express.json())
 app.post('/notification', function (req, res) {
   console.log(req.body);
-  res.status(100).send();
+  console.log(
+    req.body.transaction_status + order_id
+  );
+  res.status(200).send();
 });
 app.get("/", (req, res) => res.type('html').send(html));
 app.get('/download', function (req, res) {
@@ -64,11 +67,11 @@ app.post('/fluttertest', authenticateKey, function (req, res) {
       var qrurl = response.actions[0]['url'];
       const ref = doc(db, 'strukMasuk', req.body.id);
       var querySnapshot = await setDoc(ref, { 'midtrans_id': midtrans_id }, { merge: true })
-      res.send({ 'id': midtrans_id, 'qrcode_url': qrurl })
+      res.status(200).header({ 'Content-Type': 'application/json' }).send({ 'id': midtrans_id, 'qrcode_url': qrurl })
 
     } catch (error) {
-      res.status(400).send(error)
       console.log(error)
+      res.status(400).send(error)
     }
   })
 })
