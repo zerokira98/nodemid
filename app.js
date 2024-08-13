@@ -1,115 +1,40 @@
 const express = require("express");
 const app = express();
 const authenticateKey = require("./api.js");
-const firebaseApp = require("./fire.js");
-const { getFirestore, getDocs, collection, doc, updateDoc, setDoc } = require("firebase/firestore");
+const fireadmin = require("./fireadmin.js")
 const midtransClient = require("midtrans-client");
-const db = new getFirestore(firebaseApp);
 
 const midApi = new midtransClient.CoreApi({
   serverKey: 'SB-Mid-server-6fstaFj_2WMLl4nz34LJHgWy',
   clientKey: 'SB-Mid-client-DYN_EMsTJBpM3-GA'
 })
+const flutterappRoute = require("./routes/flutterapp.js")
+const notifhandlerRoute = require("./routes/notifhandler.js")
 
-const port = process.env.PORT || 3001;
 app.use(express.json())
-app.post('/notification', async function (req, res) {
-  console.log(req.body);
-  // console.log(
-  //   req.body.transaction_status + order_id
-  // ); 
-  const ref = doc(db, 'strukMasuk', req.body.order_id);
-  var querySnapshot = await setDoc(ref, { 'midstatus': req.body.transaction_status }, { merge: true })
-  res.status(200).send();
-});
+//
+app.use('/fluttertest', authenticateKey, flutterappRoute)
+app.use('/notification', notifhandlerRoute);
+//
 app.get("/", (req, res) => res.type('html').send(html));
 app.get('/download', function (req, res) {
   const file = `frame.png`;
   res.send(file); // Set disposition and send it.
 });
-app.post('/fluttertest', authenticateKey, function (req, res) {
-  console.log(req.body);
-  var items = [];
-  var total = 0;
-  for (const key in req.body.itemCards) {
-    // console.log(key);
-    if (Object.hasOwnProperty.call(req.body.itemCards, key)) {
-      const element = req.body.itemCards[key];
-      items.push({
-        "id": element.type,
-        "price": element.price,
-        "quantity": element.pcsBarang,
-        "name": element.type == 0 ? "Haircut" : (element.type == 1 ? "Shave" : element.name)
-
-      })
-      total += element.price * element.pcsBarang
-      // console.log(items);
-    }
-  }
-  let requestdata = {
-    "datetime": req.body.tanggal,
-    "items": items,
-    "order_id": req.body.id,
-    "total": total,
-  }
-  let parameter = {
-    "payment_type": "qris",
-    "transaction_details": {
-      "gross_amount": requestdata.total,
-      "order_id": requestdata.order_id,
-    },
-    "item_details": requestdata.items,
-    "acquirer": "gopay"
-  };
-  // console.log(requestdata);
-  // console.log(parameter);
-  midApi.charge(parameter).then(async (response) => {
-    try {
-      var midtrans_id = response.transaction_id;
-      var qrurl = response.actions[0]['url'];
-      const ref = doc(db, 'strukMasuk', req.body.id);
-      var querySnapshot = await setDoc(ref, { 'midId': midtrans_id, 'midstatus': response.transaction_status }, { merge: true })
-      res.status(200).header({ 'Content-Type': 'application/json' }).send({ 'midId': midtrans_id, 'qrcode_url': qrurl })
-
-    } catch (error) {
-      console.log(error)
-      res.status(400).send(error)
-    }
-  })
-})
-app.post('/midtrans_post', function (req, res) {
+app.post('/fluttertest2', authenticateKey, async function (req, res) {
   let items = []
-  if (req.body("data") == null) return res.send('empty body')
+    ;
+  const message_notification = {
+    notification: {
+      title: req.body.title,
+      body: req.body.body
+    },
+    token: req.body.token
+  };
+  var awaw = await fireadmin.messaging().send(message_notification)
+  console.log(message_notification);
+  if (req.body.data == null) return res.send('empty body')
   console.log(req.body);
-  // for (const key in req.body("items")) {
-  //     items.push({
-  //         "id": key.id,
-  //         "price": key.price,
-  //         "quantity": key.pcs,
-  //         "name": key.name
-
-  //     })
-
-  // }
-  // let requestdata = {
-  //     "datetime": req.body("date_time"),
-  //     "items": items,
-  //     "order_id": req.body("order_id"),
-  //     "total": req.body("total"),
-  // }
-  // let parameter = {
-  //     "payment_type": "qris",
-  //     "transaction_details": {
-  //         "gross_amount": requestdata.total,
-  //         "order_id": requestdata.order_id,
-  //     },
-  //     "item_details": requestdata.items,
-  //     "acquirer": "gopay"
-  // };
-  // midApi.charge(parameter).then((response) => {
-  //     console.log(response);
-  //     res.send('Hello World')
-  // })
 })
 app.get('/transactionstatus', authenticateKey, function (req, res) {
   // res.send('telo')
@@ -144,58 +69,59 @@ app.get('/invoice', authenticateKey, function (req, res) {
 //         console.log(error)
 //     }
 // })
+const port = process.env.PORT || 3001;
 const server = app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
 server.keepAliveTimeout = 120 * 1000;
 server.headersTimeout = 120 * 1000;
 
 const html = `
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Hello from Render!</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <script>
-      setTimeout(() => {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-          disableForReducedMotion: true
-        });
-      }, 500);
-    </script>
-    <style>
-      @import url("https://p.typekit.net/p.css?s=1&k=vnd5zic&ht=tk&f=39475.39476.39477.39478.39479.39480.39481.39482&a=18673890&app=typekit&e=css");
-      @font-face {
-        font-family: "neo-sans";
-        src: url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff2"), url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff"), url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("opentype");
-        font-style: normal;
-        font-weight: 700;
-      }
-      html {
-        font-family: neo-sans;
-        font-weight: 700;
-        font-size: calc(62rem / 16);
-      }
-      body {
-        background: white;
-      }
-      section {
-        border-radius: 1em;
-        padding: 1em;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        margin-right: -50%;
-        transform: translate(-50%, -50%);
-      }
-    </style>
-  </head>
-  <body>
-    <section>
-      Hello from Render!
-    </section>
-  </body>
-</html>
-`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                        <title>Hello from Render!</title>
+                        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+                        <script>
+                        setTimeout(() => {
+                          confetti({
+                            particleCount: 100,
+                            spread: 70,
+                            origin: { y: 0.6 },
+                            disableForReducedMotion: true
+                            });
+                            }, 500);
+                            </script>
+                            <style>
+                            @import url("https://p.typekit.net/p.css?s=1&k=vnd5zic&ht=tk&f=39475.39476.39477.39478.39479.39480.39481.39482&a=18673890&app=typekit&e=css");
+                            @font-face {
+                              font-family: "neo-sans";
+                              src: url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff2"), url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff"), url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("opentype");
+                              font-style: normal;
+                              font-weight: 700;
+                              }
+                              html {
+                                font-family: neo-sans;
+                                font-weight: 700;
+                                font-size: calc(62rem / 16);
+                                }
+                                body {
+                                  background: white;
+                                  }
+                                  section {
+                                    border-radius: 1em;
+                                    padding: 1em;
+                                    position: absolute;
+                                    top: 50%;
+                                    left: 50%;
+                                    margin-right: -50%;
+                                    transform: translate(-50%, -50%);
+                                    }
+                                    </style>
+                                    </head>
+                                    <body>
+                                    <section>
+                                    Hello from Render!
+                                    </section>
+                                    </body>
+                                    </html>
+                                    `
