@@ -1,45 +1,45 @@
 const express = require("express");
 const Struk = require("../models/struk");
 const router = express.Router();
+const midtransClient = require("midtrans-client");
 
+const firebaseApp = require("../fire.js");
+const { setDoc, doc, getFirestore } = require("firebase/firestore");
+const db = new getFirestore(firebaseApp);
+
+const midApi = new midtransClient.CoreApi({
+    serverKey: 'SB-Mid-server-6fstaFj_2WMLl4nz34LJHgWy',
+    clientKey: 'SB-Mid-client-DYN_EMsTJBpM3-GA'
+})
 
 router.post('/', function (req, res, next) {
-    console.log(req.body);
-    var a = new Struk(req.body)
+    var a = Struk.from(req.body)
     var items = [];
     var total = 0;
-    for (const key in a.itemCards) {
-        console.log(a);
-        if (Object.hasOwnProperty.call(req.body.itemCards, key)) {
-            const element = req.body.itemCards[key];
-            items.push({
-                "id": element.type,
-                "price": element.price,
-                "quantity": element.pcsBarang,
-                "name": element.type == 0 ? "Haircut" : (element.type == 1 ? "Shave" : element.name)
+    console.log(a.itemCards);
+    a.itemCards.forEach(key => {
+        console.log(key);
+        items.push({
+            "id": key.type,
+            "price": key.price,
+            "quantity": key.pcsBarang,
+            "name": key.type == 0 ? "Haircut" : (key.type == 1 ? "Shave" : key.name)
 
-            })
-            total += element.price * element.pcsBarang
-            // console.log(items);
-        }
-    }
-    let requestdata = {
-        "datetime": req.body.tanggal,
-        "items": items,
-        "order_id": req.body.id,
-        "total": total,
-    }
+        })
+        total += key.price * key.pcsBarang
+        console.log(items);
+    });
     let parameter = {
         "payment_type": "qris",
         "transaction_details": {
-            "gross_amount": requestdata.total,
-            "order_id": requestdata.order_id,
+            "gross_amount": total,
+            "order_id": a.id,
         },
-        "item_details": requestdata.items,
+        "item_details": items,
         "acquirer": "gopay"
     };
     // console.log(requestdata);
-    // console.log(parameter);
+    console.log(parameter);
     midApi.charge(parameter).then(async (response) => {
         try {
             var midtrans_id = response.transaction_id;

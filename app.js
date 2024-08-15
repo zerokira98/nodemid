@@ -2,12 +2,6 @@ const express = require("express");
 const app = express();
 const authenticateKey = require("./api.js");
 const fireadmin = require("./fireadmin.js")
-const midtransClient = require("midtrans-client");
-
-const midApi = new midtransClient.CoreApi({
-  serverKey: 'SB-Mid-server-6fstaFj_2WMLl4nz34LJHgWy',
-  clientKey: 'SB-Mid-client-DYN_EMsTJBpM3-GA'
-})
 const flutterappRoute = require("./routes/flutterapp.js")
 const notifhandlerRoute = require("./routes/notifhandler.js")
 
