@@ -27,7 +27,7 @@ router.post('/', async function (req, res, next) {
         tokens: devicestoken
     };
     console.log(message_notification);
-    // await fireadmin.messaging().sendEachForMulticast(message_notification)
+    await fireadmin.messaging().sendEachForMulticast(message_notification)
     res.status(200).send();
 })
 
