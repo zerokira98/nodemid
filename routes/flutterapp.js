@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post('/', function (req, res, next) {
     console.log(req.body);
-    var a = Struk(req.body)
+    var a = new Struk(req.body)
     var items = [];
     var total = 0;
     for (const key in a.itemCards) {
